@@ -49,7 +49,7 @@ Chaves usadas pela aplicação:
 
 ## O que entregar
 
-Em uma branch `submission/<seu-nome>`:
+No seu fork deste repositório, com um Pull Request de volta para `main`:
 
 1. **`TEST_EXECUTION.md`** — checklist preenchido (obrigatório).
 2. **`bugs.yaml`** — bugs descobertos (obrigatório).
@@ -97,16 +97,38 @@ Total possível: 100. **Linha de corte sugerida: 60.**
 
 ## Submissão
 
-```bash
-git checkout -b submission/<seu-nome>
-cp -r submission-template/* .          # copia templates para a raiz
-# preencha TEST_EXECUTION.md, bugs.yaml, TEST_PLAN.md
-git add TEST_EXECUTION.md bugs.yaml TEST_PLAN.md
-git commit -m "QA submission - <seu-nome>"
-git push origin submission/<seu-nome>
-```
+1. **Fork** este repositório para sua conta pessoal (botão "Fork" no canto
+   superior direito).
+2. Clone o seu fork:
 
-Abra um pull request da sua branch para `qa-challenge` com o título
-`QA submission - <seu-nome>`.
+   ```bash
+   git clone https://github.com/<seu-usuario>/cadastra-qa-challenge.git
+   cd cadastra-qa-challenge
+   ```
+
+3. Copie os templates para a raiz e preencha:
+
+   ```bash
+   cp -r submission-template/* .
+   # edite TEST_EXECUTION.md, bugs.yaml, TEST_PLAN.md
+   ```
+
+4. Crie uma branch, commita e faz push para o **seu fork**:
+
+   ```bash
+   git checkout -b submission
+   git add TEST_EXECUTION.md bugs.yaml TEST_PLAN.md
+   git commit -m "QA submission - <seu-nome>"
+   git push origin submission
+   ```
+
+5. **Abra um Pull Request** do seu fork (`submission`) de volta para este
+   repositório (`main` de `Cadastra-Next-Gen-Company/cadastra-qa-challenge`).
+   Use o título `QA submission - <seu-nome>`.
+
+Em poucos segundos um comentário automático no PR confirma se a submissão é
+válida. A nota detalhada não aparece no PR — ela é enviada internamente
+para o time. Você é avaliado(a) na primeira PR — push de correções na mesma
+branch dispara nova rodada.
 
 Boa caça.
