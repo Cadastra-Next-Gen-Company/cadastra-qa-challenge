@@ -1,35 +1,19 @@
-# Cadastra Editorial
+# QA Challenge — Cadastra Editorial
 
-Base de aplicação em **Next.js 15** (App Router + TypeScript + Tailwind), com camadas de domínio bem separadas e dados mockados, pronta para deploy gratuito na **Vercel (plano Hobby)**.
-
-A interface implementa o design system editorial fornecido (paleta neutra, tipografia Bodoni Moda + Manrope, layout em grid amplo) e cobre três rotas reais: home, listagem de coleções e detalhe de produto.
+Instruções para execução do teste de QA manual sobre a storefront editorial em Next.js.
 
 ---
 
 ## Sumário
 
-- [Stack](#stack)
 - [Pré-requisitos](#pré-requisitos)
-- [Instalação](#instalação)
-- [Scripts](#scripts)
-- [Estrutura de pastas](#estrutura-de-pastas)
-- [Padrões de Clean Code adotados](#padrões-de-clean-code-adotados)
-- [Camada de dados (mock → API real)](#camada-de-dados-mock--api-real)
-- [Deploy na Vercel (Hobby)](#deploy-na-vercel-hobby)
-- [Limites do plano Hobby](#limites-do-plano-hobby)
-
----
-
-## Stack
-
-- [Next.js 15](https://nextjs.org/) com **App Router**
-- [React 19](https://react.dev/)
-- **TypeScript** com `strict` + `noUncheckedIndexedAccess`
-- [Tailwind CSS 3](https://tailwindcss.com/) com design tokens customizados
-- ESLint (`next/core-web-vitals` + `next/typescript`) e Prettier (com `prettier-plugin-tailwindcss`)
-- Fontes carregadas via `next/font/google` (Bodoni Moda + Manrope)
-
-Sem dependências pagas, sem banco de dados, sem serviços externos.
+- [Como rodar a aplicação](#como-rodar-a-aplicação)
+- [Escopo do teste](#escopo-do-teste)
+- [O que entregar](#o-que-entregar)
+- [Como preencher os entregáveis](#como-preencher-os-entregáveis)
+- [Critérios de severidade](#critérios-de-severidade)
+- [Regras](#regras)
+- [Submissão](#submissão)
 
 ---
 
@@ -37,150 +21,134 @@ Sem dependências pagas, sem banco de dados, sem serviços externos.
 
 - Node.js **20.x** ou superior
 - npm **10.x** ou superior
+- Navegador atualizado (Chrome/Edge/Firefox)
 
 ---
 
-## Instalação
+## Como rodar a aplicação
 
 ```bash
-git clone <url-do-repo>
-cd avaliacao-qa
+git clone <repo>
+cd cadastra-qa-challenge
+git checkout qa-challenge
 npm install
+npm run dev   # http://localhost:3000
+```
+
+Alternativamente, use a URL de preview já deployada (link enviado por e-mail).
+
+### Limpando estado entre cenários
+
+Limpe o `localStorage` quando necessário:
+
+> DevTools → Application → Local Storage → clique direito → **Clear**.
+
+Chaves usadas pela aplicação:
+
+- `cadastra-cart:v1`
+- `cadastra-subscribers:v1`
+
+---
+
+## Escopo do teste
+
+A aplicação contém **defeitos plantados**. Sua missão é encontrá-los executando QA manual nas seguintes rotas e fluxos:
+
+| Rota | O que cobrir |
+| --- | --- |
+| `/` | Hero, coleções em destaque, newsletter |
+| `/collections` | Listagem com filtros (Section, Category), busca via header, paginação |
+| `/products/[slug]` | Detalhe do produto e "Add to bag" |
+| Carrinho | Drawer lateral, badge no header, persistência local |
+| Newsletter | Cadastro, validações, persistência |
+| `/subscribers` | Visualização dos cadastros |
+
+Recomenda-se cobrir **todas** as features listadas.
+
+---
+
+## O que entregar
+
+Na raiz do seu fork, com um Pull Request de volta para `main`:
+
+1. **`TEST_PLAN.md`** — sua estratégia em 1 página (obrigatório).
+2. **`TEST_EXECUTION.md`** — checklist preenchido (obrigatório).
+3. **`bugs.yaml`** — bugs descobertos (obrigatório).
+4. **`tests/candidate/*.spec.ts`** — automação Playwright (opcional, bônus).
+
+Templates prontos em [`submission-template/`](submission-template/). Copie a pasta e preencha:
+
+```bash
+cp -r submission-template/* .
 ```
 
 ---
 
-## Scripts
+## Como preencher os entregáveis
 
-| Comando                | Descrição                                                  |
-| ---------------------- | ---------------------------------------------------------- |
-| `npm run dev`          | Sobe o servidor de desenvolvimento em `http://localhost:3000` |
-| `npm run build`        | Faz o build de produção                                    |
-| `npm start`            | Roda o build em modo produção                              |
-| `npm run lint`         | Roda o ESLint                                              |
-| `npm run format`       | Aplica o Prettier em todo o projeto                        |
-| `npm run format:check` | Verifica formatação sem alterar arquivos                   |
+### `TEST_PLAN.md`
 
----
+Sua estratégia em 1 página: cobertura, riscos, priorização, premissas e perguntas sobre o produto.
 
-## Estrutura de pastas
+### `TEST_EXECUTION.md`
 
-```
-src/
-├── app/                           App Router (rotas, layouts, loading, error)
-│   ├── collections/               /collections (lista filtrável)
-│   ├── products/[slug]/           /products/:slug (detalhe, SSG via generateStaticParams)
-│   ├── error.tsx                  Error boundary global
-│   ├── loading.tsx                Loading boundary global
-│   ├── not-found.tsx              Página 404
-│   ├── layout.tsx                 Root layout + fonts + Header/Footer
-│   └── page.tsx                   Home (Server Component, ISR)
-├── components/
-│   ├── layout/                    Header, Footer, Newsletter
-│   └── ui/                        Primitivos: Button, Container, Icon, Logo, Price, SectionHeader
-├── features/
-│   └── products/
-│       ├── components/            Componentes do domínio "produto"
-│       └── data/                  Mocks (única fonte de verdade enquanto não há backend)
-├── lib/                           Utilitários puros (cn, format)
-├── services/                      API pública do domínio para a UI
-├── repositories/                  Acesso aos dados (in-memory hoje, REST/DB amanhã)
-├── types/                         Contratos TypeScript globais
-├── constants/                     Constantes da aplicação (nav, site)
-└── styles/                        Reservado para estilos globais adicionais
-```
+Checklist com IDs de casos de teste (`TC-HOME-*`, `TC-COL-*`, `TC-PAG-*`, `TC-SRC-*`, `TC-CART-*`, `TC-NEWS-*`, `TC-SUB-*`). Para cada caso, marque **PASS** ou **FAIL** com observação quando houver bug.
 
-### Por que `services` e `repositories`?
+### `bugs.yaml`
 
-- **Repository** isola a origem dos dados. Hoje é in-memory; trocar por Supabase, REST ou Postgres é **uma só implementação a substituir**, sem tocar nas páginas.
-- **Service** expõe as operações de domínio para a UI (`getProductsBySection`, `getRelatedProducts`, etc.). É o único ponto que as rotas consomem.
-- Componentes nunca importam mocks diretamente.
+Liste cada bug encontrado com:
+
+- `id`, `title`, `severity` (High / Medium / Low)
+- Passos de reprodução
+- Resultado esperado vs. obtido
 
 ---
 
-## Padrões de Clean Code adotados
+## Critérios de severidade
 
-- **Server Components por padrão** — `'use client'` apenas onde há estado/eventos (`Newsletter`, `error.tsx`).
-- **Composição em vez de componentes gigantes** — `ProductSection` = `SectionHeader` + `ProductGrid` + `ProductCard`.
-- **Funções puras** em `lib/` (`cn`, `formatPrice`).
-- **Tipagem nas fronteiras** — entradas/saídas de service e repository são tipadas; `noUncheckedIndexedAccess` força tratamento explícito de índices.
-- **Separação de responsabilidades** — UI não conhece a origem dos dados; mocks ficam atrás do repository.
-- **Erros previsíveis** — `notFound()` em rota dinâmica, `error.tsx` + `not-found.tsx` no App Router.
-- **Imports organizados** com alias `@/*`.
-- **Sem CSS inline / sem lógica de negócio em componentes de UI.**
+Use no `bugs.yaml`:
+
+- **High** — bloqueia funcionalidade central, gera perda/duplicação de dados ou quebra fluxo crítico (carrinho, cadastro).
+- **Medium** — degrada a experiência sem bloquear (validação fraca, mensagem incorreta).
+- **Low** — incômodo ou polimento (UX, microinteração, copy).
 
 ---
 
-## Camada de dados (mock → API real)
+## Regras
 
-Tudo passa por [`src/services/products.service.ts`](src/services/products.service.ts), que delega ao repositório em [`src/repositories/products.repository.ts`](src/repositories/products.repository.ts).
-
-Para trocar o mock por um backend real:
-
-1. Crie uma nova classe que implemente a interface `ProductsRepository`.
-2. Exporte `productsRepository` apontando para ela.
-3. Nenhum componente precisa ser alterado.
-
-Exemplo com `fetch`:
-
-```ts
-class HttpProductsRepository implements ProductsRepository {
-  async list() {
-    const res = await fetch(`${process.env.API_URL}/products`, {
-      next: { revalidate: 60 },
-    });
-    return res.json();
-  }
-  // ...
-}
-```
+- **Não altere** o código da aplicação. Só pode escrever testes/relatórios.
+- Em caso de dúvida sobre o produto, registre como pergunta no `TEST_PLAN.md` em vez de contatar o time — entender o que está dado é parte da avaliação.
 
 ---
 
-## Deploy na Vercel (Hobby)
+## Submissão
 
-1. **Suba o repositório no GitHub / GitLab / Bitbucket.**
-2. Em [vercel.com/new](https://vercel.com/new), importe o repositório.
-3. A Vercel detecta Next.js automaticamente. Mantenha os defaults:
-   - Framework: **Next.js**
-   - Build Command: `next build`
-   - Output: `.next`
-   - Install Command: `npm install`
-4. Clique em **Deploy**.
+1. **Fork** este repositório para sua conta pessoal.
+2. Clone o seu fork:
 
-Nenhuma variável de ambiente é necessária para o projeto base. Quando você adicionar integrações reais, use o painel **Settings → Environment Variables** (e atualize `.env.example`).
+   ```bash
+   git clone https://github.com/<seu-usuario>/cadastra-qa-challenge.git
+   cd cadastra-qa-challenge
+   ```
 
-### Garantias do projeto para o Hobby
+3. Copie os templates para a raiz e preencha:
 
-- **Sem Edge Functions pagas:** todas as rotas são Server Components estáticos ou com ISR (`revalidate = 3600`).
-- **Sem dependências pagas.**
-- **`generateStaticParams` na rota dinâmica `/products/[slug]`** → todas as páginas de produto são geradas no build, evitando execuções de função em runtime para detalhes que não mudam.
-- **Imagens externas usam `unoptimized`** para não consumir o quota de `Image Optimization` do Hobby. Se você adicionar imagens próprias em `public/`, pode remover o `unoptimized` e aproveitar o limite gratuito mensal.
+   ```bash
+   cp -r submission-template/* .
+   # edite TEST_PLAN.md, TEST_EXECUTION.md, bugs.yaml
+   ```
 
----
+4. Crie uma branch, commit e push para o **seu fork**:
 
-## Limites do plano Hobby
+   ```bash
+   git checkout -b submission
+   git add TEST_PLAN.md TEST_EXECUTION.md bugs.yaml
+   git commit -m "QA submission - <seu-nome>"
+   git push origin submission
+   ```
 
-> Valores referenciais — sempre confira a [documentação oficial](https://vercel.com/docs/limits) antes de produção.
+5. **Abra um Pull Request** do seu fork (`submission`) de volta para este repositório (`main` de `Cadastra-Next-Gen-Company/cadastra-qa-challenge`). Use o título `QA submission - <seu-nome>`.
 
-- Uso **não comercial / pessoal**.
-- 100 GB de bandwidth/mês.
-- Serverless / Edge Functions com cap de execução mensal.
-- 1000 imagens otimizadas/mês (por isso o projeto usa `unoptimized` para fotos hospedadas externamente).
-- Sem suporte a domínio customizado com SSL avançado (o `*.vercel.app` é gratuito).
-- Build minutes mensais limitados.
+Em poucos segundos, um comentário automático no PR confirma se a submissão é válida. A nota detalhada não aparece no PR — é enviada internamente para o time. Você é avaliado(a) na primeira PR; push de correções na mesma branch dispara nova rodada.
 
-Para evitar surpresas:
-
-- Mantenha rotas **estáticas ou ISR** (já configurado).
-- Evite chamadas em runtime para terceiros pagos.
-- Se precisar de banco, comece por opções com plano gratuito (Supabase free, Neon free, Turso free) e isole por trás do `repository`.
-
----
-
-## Próximos passos sugeridos
-
-- Conectar `ProductsRepository` a um CMS headless gratuito (Sanity / Contentful free / Supabase).
-- Adicionar testes unitários (`vitest`) nos `services` e `lib`.
-- Adicionar carrinho com `Zustand` (cliente, sem custo de função).
-- Internacionalização com `next-intl`.
+Boa caça.
