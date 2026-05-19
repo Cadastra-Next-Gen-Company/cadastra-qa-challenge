@@ -2,10 +2,19 @@
 
 Instruções para execução do teste de QA manual sobre a storefront editorial em Next.js.
 
+## Preview no GitHub
+
+Abra a aplicação direto no navegador via **GitHub Codespaces** (sem instalar nada localmente):
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/viniciusdelfino/cadastra-qa-challenge?quickstart=1)
+
+> Ao subir o Codespace, o `npm install` e `npm run dev` rodam automaticamente. Quando a porta `3000` ficar disponível, o VS Code abrirá o preview da aplicação. Use o botão **"Open in Browser"** para testar em uma aba dedicada.
+
 ---
 
 ## Sumário
 
+- [Preview no GitHub](#preview-no-github)
 - [Pré-requisitos](#pré-requisitos)
 - [Como rodar a aplicação](#como-rodar-a-aplicação)
 - [Escopo do teste](#escopo-do-teste)
