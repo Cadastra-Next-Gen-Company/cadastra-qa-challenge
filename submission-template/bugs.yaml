@@ -6,19 +6,200 @@
 #
 # Pode haver MAIS bugs do que o número esperado pelo gabarito — bugs válidos
 # fora do catálogo entram na avaliação de "lateral thinking" (bônus).
+# Remova o exemplo acima e adicione os seus bugs abaixo.
 
-bugs:
-  - id: BUG-01
-    feature: cart
-    category: validation
-    severity: high
-    title: "Exemplo: cart aceita quantidade zero"
-    steps:
-      - "Adicionar produto ao carrinho"
-      - "Abrir drawer"
-      - "Clicar no botão '−' até a quantidade chegar a 0"
-    expected: "Item deveria ser removido do carrinho quando quantidade < 1"
-    actual: "Item permanece visível com quantidade 0"
-    evidence: "screenshot opcional, link, ou nada"
+# ==========================================
+# CATEGORIA: UX / UI
+# ==========================================
+- id: BUG-01
+  feature: filters
+  category: ux
+  severity: medium
+  title: "Dropdowns de filtro não fecham ao clicar fora deles (Click Outside ausente)"
+  steps:
+    - "Acessar a página de Coleções (/collections)."
+    - "Clicar no filtro 'Section' ou 'Category' para abrir o menu suspenso."
+    - "Clicar em qualquer área vazia da tela ou em outro elemento fora do dropdown."
+  expected: "O dropdown deve fechar automaticamente ao detectar um clique fora de sua área."
+  actual: "O dropdown permanece aberto na tela, sobrepondo o conteúdo."
+  evidence: "O menu só fecha se o usuário clicar explicitamente no título do dropdown novamente."
 
-  # Remova o exemplo acima e adicione os seus bugs abaixo.
+- id: BUG-02
+  feature: subscribers-admin
+  category: ui
+  severity: medium
+  title: "Erro de 'duplicate key' no React ao renderizar e-mails repetidos na lista de inscritos"
+  steps:
+    - "Cadastrar o mesmo e-mail duas vezes ou mais no formulário da newsletter."
+    - "Acessar a rota /subscribers."
+    - "Abrir o console do desenvolvedor (F12)."
+  expected: "A página deve agrupar as submissões ou exibir cada linha com uma chave (key) única, sem gerar erros de renderização."
+  actual: "A página exibe as duplicatas e o React dispara o erro 'Encountered two children with the same key' no console."
+  evidence: "Aviso de erro no console: 'Encountered two children with the same key, `teste@exemplo.com`'."
+
+# ==========================================
+# CATEGORIA: NAVIGATION
+# ==========================================
+- id: BUG-03
+  feature: header
+  category: navigation
+  severity: high
+  title: "Links de navegação do header desaparecem no mobile sem menu alternativo (hamburger)"
+  steps:
+    - "Acessar qualquer página da loja (ex: Home ou Collections)."
+    - "Reduzir a largura da tela para simular a visualização em dispositivos móveis."
+    - "Observar o comportamento do Header."
+  expected: "Os links descritivos devem ser ocultados e substituídos por um ícone de menu (hambúrguer) para garantir a navegação."
+  actual: "Os links 'New Arrivals', 'Ready to Wear' e 'Accessories' desaparecem completamente e não há como acessá-los."
+  evidence: "Screenshot comprovando a ausência de menu em tela reduzida."
+
+- id: BUG-04
+  feature: pagination
+  category: navigation
+  severity: high
+  title: "Navegação por paginação (Next/Previous) limpa os filtros ativos de Category e Section"
+  steps:
+    - "Acessar a página de Coleções (/collections)."
+    - "Aplicar um filtro de Category (ex: Tops - 8 produtos)."
+    - "Clicar em 'Next' para ir à página 2."
+    - "Na página 2, clicar em 'Previous' para retornar à página 1."
+  expected: "Ambas as navegações devem manter os parâmetros na URL e a listagem filtrada."
+  actual: "Tanto ao ir para a página 2 quanto ao voltar para a página 1, os filtros ativos são descartados e a listagem exibe todos os produtos."
+  evidence: "A URL perde os query params e a listagem reseta para a visão global."
+
+# ==========================================
+# CATEGORIA: VALIDATION
+# ==========================================
+- id: BUG-05
+  feature: search
+  category: validation
+  severity: medium
+  title: "Busca não é case-insensitive (diferencia maiúsculas de minúsculas)"
+  steps:
+    - "Abrir o campo de busca no header."
+    - "Digitar um termo válido, mas com letras maiúsculas (ex: 'Coat' ou 'COAT')."
+    - "Pressionar Enter."
+  expected: "A busca deve ignorar a capitalização (case-insensitive) e retornar os mesmos produtos que a busca em minúsculas (ex: 'coat')."
+  actual: "A busca não encontra resultados e exibe a página de 0 itens."
+  evidence: "Screenshot mostrando a busca por 'Coat' retornando 0 itens, enquanto 'coat' retorna o produto."
+
+- id: BUG-06
+  feature: cart
+  category: validation
+  severity: high
+  title: "Botão de subtrair (-) permite que a quantidade do produto chegue a zero sem removê-lo"
+  steps:
+    - "Adicionar qualquer produto ao carrinho."
+    - "Abrir o drawer do carrinho."
+    - "Clicar no botão '−' no item até a quantidade ser reduzida a 0."
+  expected: "Ao atingir quantidade 1, um novo clique no '−' deveria remover o item do carrinho."
+  actual: "O item permanece no carrinho com quantidade 0 (e permite continuar reduzindo)."
+  evidence: "Item continua visível no drawer exibindo a quantidade '0'."
+
+- id: BUG-07
+  feature: newsletter
+  category: validation
+  severity: medium
+  title: "Validação do campo de newsletter aceita e-mails sem domínio de topo (TLD)"
+  steps:
+    - "Rolar até o rodapé da página."
+    - "Inserir um e-mail sem TLD (ex: 'teste@exemplo')."
+    - "Clicar no botão de inscrever."
+  expected: "O formulário deve bloquear o envio e exibir a mensagem 'Please enter a valid email address'."
+  actual: "O e-mail incompleto é aceito e o sistema exibe a mensagem de sucesso 'Thank you... is now subscribed'."
+  evidence: "Mensagem de sucesso sendo exibida para a string 'teste@exemplo'."
+
+# ==========================================
+# CATEGORIA: ACCESSIBILITY
+# ==========================================
+- id: BUG-08
+  feature: cart
+  category: accessibility
+  severity: medium
+  title: "Drawer do carrinho não fecha ao pressionar a tecla Esc"
+  steps:
+    - "Adicionar um produto ao carrinho ou clicar no ícone da sacola para abrir o drawer."
+    - "Com o drawer aberto, pressionar a tecla 'Esc' no teclado."
+  expected: "O drawer deve ser fechado imediatamente, assim como ocorre nos dropdowns da aplicação."
+  actual: "A tecla 'Esc' é ignorada e o drawer permanece sobrepondo a tela."
+  evidence: "Ausência de evento de teclado (keydown) mapeado para o fechamento do componente Cart Drawer."
+
+- id: BUG-09
+  feature: cart
+  category: accessibility
+  severity: medium
+  title: "Conflito de foco e aria-hidden ao interagir com o overlay do Cart Drawer"
+  steps:
+    - "Abrir o drawer do carrinho."
+    - "Inspecionar a página e observar o Console do navegador."
+    - "Interagir com o fechamento do drawer ou com o overlay escuro de fundo."
+  expected: "Elementos ocultos visualmente e via aria-hidden não devem reter o foco do DOM."
+  actual: "Ocorre uma violação de acessibilidade bloqueando o aria-hidden porque um elemento descendente reteve o foco."
+  evidence: "Aviso no console: 'Blocked aria-hidden on an element because its descendant retained focus... Element with focus: <button class=absolute inset-0 bg-black/40>'."
+
+# ==========================================
+# CATEGORIA: LOGIC
+# ==========================================
+- id: BUG-10
+  feature: newsletter
+  category: logic
+  severity: medium
+  title: "Sistema não bloqueia e-mails duplicados e omite mensagem de 'já cadastrado'"
+  steps:
+    - "Rolar até o formulário da newsletter no rodapé da página."
+    - "Inserir um e-mail válido (ex: 'qa.teste@exemplo.com') e realizar a inscrição com sucesso."
+    - "Inserir exatamente o mesmo e-mail no campo e tentar inscrever novamente."
+  expected: "O sistema deve identificar a duplicidade e exibir uma mensagem informando que o e-mail já está cadastrado."
+  actual: "O sistema aceita a nova submissão silenciosamente e exibe a mensagem de sucesso novamente."
+  evidence: "A mensagem 'Thank you. qa.teste@exemplo.com is now subscribed' é exibida para envios consecutivos do mesmo endereço."
+
+# ==========================================
+# CATEGORIA: BÔNUS (LATERAL THINKING)
+# ==========================================
+- id: BUG-11
+  feature: home
+  category: navigation
+  severity: low
+  title: "Botão 'Explore Film' na Home não possui ação associada"
+  steps:
+    - "Acessar a página inicial (Home)."
+    - "Clicar no botão 'Explore Film' na seção Hero."
+  expected: "O botão deveria abrir um modal com vídeo ou redirecionar para uma página correspondente."
+  actual: "Nenhuma ação é disparada ao clicar no botão."
+  evidence: "Cliques no botão não geram navegação nem erros no console."
+
+- id: BUG-12
+  feature: home
+  category: ux
+  severity: low
+  title: "Imagem Hero da Home é cortada inadequadamente em resoluções menores"
+  steps:
+    - "Acessar a página inicial (Home)."
+    - "Reduzir a largura da janela do navegador para simular telas de tablet ou mobile."
+  expected: "A imagem de fundo deve se ajustar mantendo o enquadramento do sujeito principal (modelo) visível."
+  actual: "A parte superior da imagem é cortada, escondendo o rosto da modelo."
+  evidence: "Screenshot mostrando a imagem cortada na parte superior em viewport reduzido."
+
+- id: BUG-13
+  feature: header
+  category: ux
+  severity: low
+  title: "Imagem de placeholder/perfil retorna erro 404 e possui CSS de proporção incorreto"
+  steps:
+    - "Acessar qualquer página da aplicação."
+    - "Inspecionar a página (F12) e abrir a aba Console."
+  expected: "Não devem haver erros de 404 para assets da aplicação, e imagens do Next.js não devem gerar alertas de proporção no console."
+  actual: "O console exibe um erro 404 para o recurso 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwjsoCyYLHCE16N6JvOD4Vz…ZgUJJJ-lyn_aBAsTTD71DTh7sKDYNNqIhTA_u8Zd4aPVWeEQszkH10hJA5tev7oasPPqzMTnYB' e um 'warn' de CSS do Next.js sobre width/height da imagem."
+  evidence: "Logs de erro 'Failed to load resource: 404' e 'Image with src... has either width or height modified' presentes no console."
+
+- id: BUG-14
+  feature: architecture
+  category: tech-debt
+  severity: low
+  title: "Aviso de depreciação do Next.js referente ao scroll-behavior no elemento <html>"
+  steps:
+    - "Navegar por qualquer página da aplicação."
+    - "Inspecionar a página (F12) e observar a aba Console."
+  expected: "O console deve estar limpo de avisos de depreciação do framework."
+  actual: "O Next.js emite um aviso alertando sobre uma futura quebra no 'scroll-behavior: smooth'."
+  evidence: "Aviso no console: 'Detected scroll-behavior: smooth on the <html> element... add data-scroll-behavior=smooth to your <html> element.'"
