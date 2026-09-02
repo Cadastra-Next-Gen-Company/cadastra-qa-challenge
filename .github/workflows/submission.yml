@@ -17,12 +17,25 @@ jobs:
   validate-and-dispatch:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR head (read-only)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          path: submission
+      # Nao fazemos checkout do fork: pull_request_target roda com os secrets
+      # do repo base. Buscamos apenas os arquivos de dados via API, que sao
+      # lidos/parseados, nunca executados.
+      - name: Fetch submission files (data only)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          mkdir -p submission
+          for f in TEST_EXECUTION.md bugs.yaml TEST_PLAN.md; do
+            if gh api "repos/$HEAD_REPO/contents/$f?ref=$HEAD_SHA" \
+                 -H "Accept: application/vnd.github.raw" > "submission/$f" 2>/dev/null; then
+              echo "fetched $f"
+            else
+              rm -f "submission/$f"
+              echo "could not fetch $f"
+            fi
+          done
 
       - name: Validate submission files exist
         id: validate
@@ -102,26 +115,37 @@ jobs:
         if: steps.validate.outputs.valid == 'true'
         env:
           PAT: ${{ secrets.GRADER_DISPATCH_PAT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          SUB_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          SUB_SHA: ${{ github.event.pull_request.head.sha }}
+          SUB_BRANCH: ${{ github.event.pull_request.head.ref }}
+          CANDIDATE: ${{ github.event.pull_request.user.login }}
         run: |
           if [ -z "$PAT" ]; then
             echo "::warning::GRADER_DISPATCH_PAT not configured — grader will not run automatically."
             exit 0
           fi
-          curl -sS -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $PAT" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/Cadastra-Next-Gen-Company/avaliacao-qa/dispatches \
-            -d @- <<EOF
-          {
-            "event_type": "candidate-submission",
-            "client_payload": {
-              "pr_number": ${{ github.event.pull_request.number }},
-              "pr_url": "${{ github.event.pull_request.html_url }}",
-              "submission_repo": "${{ github.event.pull_request.head.repo.full_name }}",
-              "submission_sha": "${{ github.event.pull_request.head.sha }}",
-              "submission_branch": "${{ github.event.pull_request.head.ref }}",
-              "candidate_login": "${{ github.event.pull_request.user.login }}"
-            }
-          }
-          EOF
+          # Payload montado com jq a partir de env vars: valores controlados
+          # pelo candidato (branch, login) nunca sao interpolados no script.
+          jq -n \
+            --argjson pr_number "$PR_NUMBER" \
+            --arg pr_url "$PR_URL" \
+            --arg submission_repo "$SUB_REPO" \
+            --arg submission_sha "$SUB_SHA" \
+            --arg submission_branch "$SUB_BRANCH" \
+            --arg candidate_login "$CANDIDATE" \
+            '{event_type: "candidate-submission", client_payload: {
+                pr_number: $pr_number,
+                pr_url: $pr_url,
+                submission_repo: $submission_repo,
+                submission_sha: $submission_sha,
+                submission_branch: $submission_branch,
+                candidate_login: $candidate_login
+             }}' \
+          | curl -sS -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $PAT" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/Cadastra-Next-Gen-Company/avaliacao-qa/dispatches \
+              -d @-
