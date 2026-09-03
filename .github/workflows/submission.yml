@@ -66,7 +66,14 @@ jobs:
           try:
               with open('bugs.yaml') as fh:
                   data = yaml.safe_load(fh)
-              bugs = data.get('bugs', []) if isinstance(data, dict) else []
+              if isinstance(data, list):
+                  bugs = data
+              elif isinstance(data, dict) and isinstance(data.get('bugs'), list):
+                  bugs = data['bugs']
+              else:
+                  raise ValueError('expected a list of bugs or an object containing a bugs list')
+              if not all(isinstance(bug, dict) for bug in bugs):
+                  raise ValueError('every bug entry must be an object')
               print(f'bugs.yaml parsed OK ({len(bugs)} bug(s) reported)')
           except Exception as e:
               print(f'::error::bugs.yaml is not valid YAML: {e}')
@@ -78,7 +85,7 @@ jobs:
         id: tcs
         run: |
           cd submission
-          filled=$(grep -cE '^\|\s*TC-[A-Z]+-[0-9]+\s*\|.*\|\s*(PASS|FAIL|BLOCKED)\s*\|' TEST_EXECUTION.md || true)
+          filled=$(grep -cE '^\|[[:space:]]*TC-[A-Z]+-[0-9]+[[:space:]]*\|.*\|[[:space:]]*(PASS|FAIL|BLOCKED)([^[:alnum:]_|]|[[:space:]])*\|' TEST_EXECUTION.md || true)
           total=$(grep -cE '^\|\s*TC-[A-Z]+-[0-9]+\s*\|' TEST_EXECUTION.md || true)
           echo "filled=$filled" >> "$GITHUB_OUTPUT"
           echo "total=$total" >> "$GITHUB_OUTPUT"
