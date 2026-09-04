@@ -1,24 +1,180 @@
-# Liste os bugs encontrados. Use o formato abaixo para cada bug.
-#
-# - feature: cart | newsletter | filters | pagination | search | subscribers | pdp | header | other
-# - category: validation | persistence | navigation | a11y | ux | perf | security
-# - severity: high | medium | low
-#
-# Pode haver MAIS bugs do que o número esperado pelo gabarito — bugs válidos
-# fora do catálogo entram na avaliação de "lateral thinking" (bônus).
-
 bugs:
   - id: BUG-01
     feature: cart
+    category: a11y
+    severity: high
+    title: "A tecla Esc não fecha o drawer do carrinho"
+    steps:
+      - "Navegue até a PDP"
+      - "Clique em 'Add to bag' para abrir o drawer do carrinho"
+      - "Pressione a tecla Esc"
+    expected: "O drawer fecha no pressionar Esc, seguindo o comportamento padrão de diálogo"
+    actual: "O drawer fica aberto. 
+    evidence: "src/features/cart/components/CartDrawer.png"
+
+  - id: BUG-02
+    feature: pagination
+    category: navigation
+    severity: high
+    title: "Links de paginação descartam o filtro Category da URL"
+    steps:
+      - "Navegue até /collections?category=tops"
+      - "Mostrando 8 produtos em 2 páginas"
+      - "Clique no link Next"
+    expected: "A URL deve ser /collections?category=tops&page=2 (filtro de categoria preservado)"
+    actual: "A URL se torna /collections?page=2 — o filtro se perde e mostra outros produtos em vez de apenas 'tops'"
+    evidence: "src/components/ui/Pagination.png"
+
+  - id: BUG-03
+    feature: cart
     category: validation
     severity: high
-    title: "Exemplo: cart aceita quantidade zero"
+    title: "Diminuir a quantidade para 0 deixa um item com quantidade '0' "
     steps:
-      - "Adicionar produto ao carrinho"
-      - "Abrir drawer"
-      - "Clicar no botão '−' até a quantidade chegar a 0"
-    expected: "Item deveria ser removido do carrinho quando quantidade < 1"
-    actual: "Item permanece visível com quantidade 0"
-    evidence: "screenshot opcional, link, ou nada"
+      - "Adicione um produto ao carrinho"
+      - "Abra o drawer do carrinho"
+      - "Clique no botão - até a quantidade chegar a 1"
+      - "Clique no botão - mais uma vez (qtd 1 → 0)"
+    expected: "O item deve ser removido na quantidade cai abaixo de 1"
+    actual: "Quantidade fica em 0 e subtotal $0. 
+    evidence: "src/features/cart/CartProvider.png"
 
-  # Remova o exemplo acima e adicione os seus bugs abaixo.
+  - id: BUG-04
+    feature: newsletter
+    category: validation
+    severity: high
+    title: "Inscrições com e-mail duplicado são aceitas — sem detecção de duplicatas"
+    steps:
+      - "No rodapé da newsletter na Home"
+      - "Digite um email e envie"
+      - "Envie o mesmo e-mail novamente"
+    expected: "A segunda inscrição deve exibir a mensagem 'já inscrito' e não adicionar um duplicado"
+    actual: "O e-mail é adicionado novamente como um novo"
+    evidence: "src/features/subscribers/useSubscribers.png"
+
+  - id: BUG-05
+    feature: search
+    category: validation
+    severity: medium
+    title: "A busca diferencia maiúsculas de minúsculas — termos em maiúsculas não retornam resultados"
+    steps:
+      - "Navegue até /collections"
+      - "Use a busca do cabeçalho e digite 'coat' (minúsculas) → retorna Sculpted Wool Coat"
+      - "Use a busca do cabeçalho e digite 'Coat/COAT' (maiúscula) → retorna 0 resultados"
+    expected: "Buscar 'Coat' deve retornar os mesmos resultados que 'coat' (correspondência sem diferenciar maiúsculas/minúsculas). Se não utilizar inteligentsearch ou outro plugin/etc, pode comprometar a busca de no mínimo 3 a 4 letras"
+    actual: "maiúsculas já não conseguem identificar na pesquisa"
+    evidence: "src/services/products.service.png"
+
+  - id: BUG-06
+    feature: filters
+    category: ux
+    severity: medium
+    title: "Dropdowns de filtro não fecham ao clicar fora"
+    steps:
+      - "Navegue até /collections"
+      - "Abra o dropdown 'Section' "
+      - "Clique em qualquer lugar fora do dropdown (ex.: no fundo da página ou no dropdown Category)"
+    expected: "O dropdown aberto deve fechar ao clicar fora da área"
+    actual: "O dropdown fica aberto. 
+    evidence: "src/features/products/components/CollectionFilters.png"
+
+  - id: BUG-07
+    feature: newsletter
+    category: validation
+    severity: medium
+    title: "Regex de validação de e-mail aceita endereços sem TLD (ex.: 'teste@exemplo')"
+    steps:
+      - "Navegue até o formulário de newsletter no rodapé da página inicial"
+      - "Digite um email sem TLD/sufixo de domínio e click enviar"
+    expected: "O e-mail deve ser rejeitado com uma mensagem de erro — falta um domínio válido"
+    actual: "O e-mail é aceito e a inscrição é realizada.
+    evidence: "src/features/subscribers/storagenews.png"
+
+  - id: BUG-08
+    feature: header
+    category: navigation
+    severity: low
+    title: "Todos os links do rodapé apontam para '#' e não abrem"
+    steps:
+      - "No rodapé em qualquer página"
+      - "Clique em qualquer link do rodapé (ex.: Privacy Policy, Contact, Store Locator)"
+    expected: "Os links do rodapé abrem as respectivas páginas, ou links fakes para teste/respctiva"
+    actual: "Todos os links do rodapé têm link/ancora"
+    evidence: "src/constants/navigation.png"
+
+  - id: BUG-09
+    feature: header
+    category: navigation
+    severity: low
+    title: "Link de navegação 'Ready to Wear' filtra incorretamente para category=dresses"
+    steps:
+      - "Na página inicial/coleções, clique no link 'Ready to Wear' no cabeçalho"
+    expected: "O link deve navegar para uma seção 'Ready to Wear' ou uma coleção relevante, e não filtrar para 'dresses'"
+    actual: "O link aponta para `/collections?category=dresses`, um filtro"
+    evidence: "src/constants/navigation.png"
+
+  - id: BUG-10
+    feature: PDP/PLP
+    category: data
+    severity: low
+    title: "Vários produtos 'tops' exibem a mesma imagem"
+    steps:
+      - "Navegue até /collections (todos os produtos) ou /collections?category=tops"
+      - "Observe os cards dos produtos Summer Tie-Front Top, Classic Tie-Front, Relaxed Poplin Shirt e Studio Colorblock Shirt"
+    expected: "Cada produto deve exibir uma imagem/alt apropriada ao seu nome/descrição. Mesmo que sejam SKUs diferentes, IAs já validam GEO(generative engine opt.) e pode comprometer a busca para a loja/SEO"
+    actual: "Os produtos 'tops' com imagens próprias e alt/descritvo corretos.
+    evidence: "src/features/products/data/tops.png"
+
+
+  - id: BUG-11
+    feature: header
+    category: products
+    severity: low
+    title: "Menus alinhamento visual"
+    steps:
+      - "Navegue header/menus"
+      - "Observe a sequencia dos Menus/Categorias/PLPs"
+    expected: "Alinhamento sequencia à esquerda, padrão de lojas"
+    actual: "Pelo contexto: 'Accessories' no desktop/web está alinhado no bloco de busca/minicart"
+    evidence: "src\features\products\components\navigationdireita.png"
+
+
+  - id: BUG-12
+    feature: category
+    category: navigation
+    severity: medium
+    title: "Combinação de filtros sem procutos"
+    steps:
+      - "Navegue até alguma categoria/PLP"
+      - "Aplique a combinação de filtros"
+    expected: "Conforme os indicativos de filtros, exibir os produtos ou não"
+    actual: "A combinação com indicativo de quantidade, fica sem produtos, mesmo indicando ex. '1' "
+    evidence: "src\features\products\components\navigationcombi.png"
+
+  - id: BUG-13
+    feature: cart
+    category: navigation
+    severity: low
+    title: "Campo de quantidade"
+    steps:
+      - "Navegue até a PDP"
+      - "Clique em 'Add to bag' para abrir o drawer do carrinho"
+      - "Clique no campo de quantidade"
+    expected: "No codigo existe o existe em: 'font-body text-label-caps min-w-[1.5rem] text-center', mas os seletores - e + sobrepõe"
+    actual: "campo sobreposto ao - e + de seletores"
+    evidence: "src/features/cart/components/Cartcampo.png"
+
+
+  - id: BUG-14
+    feature: PDP
+    category: products
+    severity: low
+    title: "eventos mouseover/mouseclick"
+    steps:
+      - "Navegue a descrição da PDP"
+      - "no mobile cliue/press que em reserva"
+    expected: "Como desktop/web, mesmo que não funcione manter a mesma cor btn"
+    actual: "mudança de cor similar ao 'add to bag' "
+    evidence: "src\features\products\components\pdpmobilecorlor.png"
+
+
